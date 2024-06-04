@@ -5,7 +5,7 @@ Follow these steps to set up and deploy your Firebase functions.
 ## Initial Setup
 
 1. **Clone the repository:**
-   Use `git clone <your-repo-url>` to clone the repository to your local machine.
+   Use `git clone https://github.com/alexpaden/firebase-farcaster-ai` to clone the repository to your local machine.
 
 2. **Change directory to the functions folder:**
    Enter the directory with `cd /functions`.
