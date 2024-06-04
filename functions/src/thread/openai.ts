@@ -54,11 +54,11 @@ const formatWithOpenAI = async (data: Data, numReplies: number): Promise<any> =>
     const formattedReplies = formatReplies(topReplies);
 
     const prompt = `
-        Initial cast: ${initialCastText}
+  Initial cast: ${initialCastText}
 
-        Direct replies:
-        ${formattedReplies}
-    `;
+  Direct replies:
+  ${formattedReplies}
+`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -68,7 +68,8 @@ const formatWithOpenAI = async (data: Data, numReplies: number): Promise<any> =>
           content: `You are a helpful assistant whose role is to summarize the data in a thread around this conversation in an easy-to-read format
           for quick display in a social app of mobile screen size. Your summary should capture the essence of the replies as they relate to the thread's initial cast.
           Avoid restating what the original cast says, as the author has already read the original post. The summary should be concise and avoid numbering unless it adds clarity.
-          Make sure to include any mentions of users (e.g., @perl, @mintit) as they are relevant to the context and engagement, don't include the @. I have provided the top ${numReplies} replies by engagement for you to summarize`,
+          Make sure to include any mentions of users (e.g., @perl, @mintit) as they are relevant to the context and engagement, don't include the @. I have provided the top ${numReplies} replies by engagement for you to summarize.
+          You are to respond as if you're an informative description, not a conversation participant. DO NOT redescribe the original post or include it in your description. DO NOT enumerate the replies, create a comprehensive short paragraph`,
         },
         {role: "user", content: prompt},
       ],
