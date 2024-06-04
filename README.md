@@ -28,7 +28,7 @@ Follow these steps to set up and deploy your Firebase functions.
 6. **Test locally with the Firebase emulator:**
     To setup firebase env vars for localhost run `functions:config:get > .runtimeconfig.json`
 
-   Run in localhost with `firebase emulators:start --only functions`.
+   Run in localhost with `firebase emulators:start`.
 
 7. **Deploy to Firebase:**
-   Deploy your functions to Firebase using `firebase deploy --only functions`. This command ensures that only your functions are deployed.
+   Deploy your functions to Firebase using `firebase deploy`. 
