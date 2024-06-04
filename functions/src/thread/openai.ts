@@ -1,5 +1,5 @@
-import * as functions from 'firebase-functions';
-import OpenAI from 'openai';
+import * as functions from "firebase-functions";
+import OpenAI from "openai";
 
 const openai = new OpenAI({
   apiKey: functions.config().openai.api_key,
@@ -27,10 +27,10 @@ const formatWithOpenAI = async (data: Data, numReplies: number): Promise<any> =>
     const initialCastText = data.initial_cast.text;
     const usernames: Set<string> = new Set();
 
-    const formatReplies = (replies: Cast[], depth: number = 0): string => {
+    const formatReplies = (replies: Cast[], depth = 0): string => {
       return replies.map((reply, index) => {
         usernames.add(reply.username);
-        const formattedReply = `${'  '.repeat(depth)}${index + 1}. ${reply.text}`;
+        const formattedReply = `${"  ".repeat(depth)}${index + 1}. ${reply.text}`;
         if (reply.direct_replies && reply.direct_replies.length > 0) {
           const nestedReplies = reply.direct_replies
             .filter((nestedReply: Cast) => nestedReply.socialCapitalValue !== null && nestedReply.socialCapitalValue >= (reply.socialCapitalValue ?? 0))
@@ -43,7 +43,7 @@ const formatWithOpenAI = async (data: Data, numReplies: number): Promise<any> =>
           return `${formattedReply}\n${formatReplies(nestedReplies, depth + 1)}`;
         }
         return formattedReply;
-      }).join('\n');
+      }).join("\n");
     };
 
     const topReplies = data.direct_replies
@@ -61,16 +61,16 @@ const formatWithOpenAI = async (data: Data, numReplies: number): Promise<any> =>
     `;
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: "gpt-4o",
       messages: [
         {
-          role: 'system',
+          role: "system",
           content: `You are a helpful assistant whose role is to summarize the data in a thread around this conversation in an easy-to-read format
           for quick display in a social app of mobile screen size. Your summary should capture the essence of the replies as they relate to the thread's initial cast.
           Avoid restating what the original cast says, as the author has already read the original post. The summary should be concise and avoid numbering unless it adds clarity.
-          Make sure to include any mentions of users (e.g., @perl, @mintit) as they are relevant to the context and engagement, don't include the @. I have provided the top ${numReplies} replies by engagement for you to summarize`
+          Make sure to include any mentions of users (e.g., @perl, @mintit) as they are relevant to the context and engagement, don't include the @. I have provided the top ${numReplies} replies by engagement for you to summarize`,
         },
-        { role: 'user', content: prompt },
+        {role: "user", content: prompt},
       ],
       temperature: 1,
       max_tokens: 256,
@@ -79,7 +79,7 @@ const formatWithOpenAI = async (data: Data, numReplies: number): Promise<any> =>
       presence_penalty: 0,
     });
 
-    const threadSummary = response.choices[0]?.message.content?.trim() || 'No content';
+    const threadSummary = response.choices[0]?.message.content?.trim() || "No content";
 
     const result = {
       hash: data.initial_cast.hash,
@@ -92,11 +92,10 @@ const formatWithOpenAI = async (data: Data, numReplies: number): Promise<any> =>
     };
 
     return result;
-
   } catch (error) {
-    console.error('Error formatting with OpenAI:', (error as Error).message);
-    throw new Error('Failed to format data with OpenAI');
+    console.error("Error formatting with OpenAI:", (error as Error).message);
+    throw new Error("Failed to format data with OpenAI");
   }
 };
 
-export { formatWithOpenAI };
+export {formatWithOpenAI};
