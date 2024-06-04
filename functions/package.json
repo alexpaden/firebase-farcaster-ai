@@ -1,15 +1,16 @@
 {
-  "name": "functions",
+  "name": "firebase-farcaster-ai",
+  "description": "Serverless AI functions for the Farcaster platform, utilizing Firebase and OpenAI.",
   "scripts": {
     "lint": "eslint --ext .js,.ts .",
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "serve": "npm run build && firebase emulators:start --only functions",
-    "shell": "npm run build && firebase functions:shell",
-    "start": "npm run shell",
-    "deploy": "firebase deploy --only functions",
+    "serve": "yarn run build && firebase emulators:start",
+    "shell": "yarn run build && firebase functions:shell",
+    "start": "yarn run shell",
+    "deploy": "firebase deploy",
     "logs": "firebase functions:log"
-  },
+  },  
   "engines": {
     "node": "18"
   },
@@ -32,7 +33,9 @@
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-import": "^2.25.4",
     "firebase-functions-test": "^3.1.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.1.0"
   },
-  "private": true
+  "private": true,
+  "version": "1.0.0",
+  "license": "MIT"
 }

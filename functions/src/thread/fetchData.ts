@@ -1,5 +1,5 @@
-import { init, fetchQuery } from '@airstack/node';
-import * as functions from 'firebase-functions';
+import {init, fetchQuery} from "@airstack/node";
+import * as functions from "firebase-functions";
 
 
 const GET_REPLY_INFO_QUERY = `
@@ -46,20 +46,20 @@ interface SocialCapitalValueResponse {
 const fetchData = async (hash: string): Promise<{ initial_cast: Cast; direct_replies: Cast[]; total_replies_count: number; filtered_replies_count: number }> => {
   const response = await fetch(`https://api.neynar.com/v2/farcaster/cast/conversation?identifier=${hash}&type=hash&reply_depth=5&include_chronological_parent_casts=false&viewer_fid=533`, {
     headers: {
-      'Accept': 'application/json',
-      'api_key': functions.config().neynar.api_key as string
-    }
+      "Accept": "application/json",
+      "api_key": functions.config().neynar.api_key as string,
+    },
   });
 
   if (!response.ok) {
-    throw new Error('Network response was not ok');
+    throw new Error("Network response was not ok");
   }
 
   const data = await response.json();
   const conversation = data.conversation;
 
   if (!conversation) {
-    throw new Error('Invalid conversation data');
+    throw new Error("Invalid conversation data");
   }
 
   const isOlderThanFourMonths = (timestamp: string): boolean => {
@@ -81,16 +81,16 @@ const fetchData = async (hash: string): Promise<{ initial_cast: Cast; direct_rep
     power_badge: cast.author.power_badge,
     replies_count: cast.replies.count,
     timestamp: cast.timestamp,
-    socialCapitalValue: null
+    socialCapitalValue: null,
   });
 
   const extractReplies = (replies: any[]): Cast[] => {
     totalRepliesCount += replies.length;
     return replies
-      .map(reply => {
+      .map((reply) => {
         const extractedReply: Cast = {
           ...extractInfo(reply),
-          direct_replies: reply.direct_replies ? extractReplies(reply.direct_replies) : []
+          direct_replies: reply.direct_replies ? extractReplies(reply.direct_replies) : [],
         };
         extractedReply.replies_count = (extractedReply.direct_replies?.length ?? 0) + (extractedReply.direct_replies?.reduce((acc, r) => acc + r.replies_count, 0) ?? 0);
 
@@ -99,7 +99,7 @@ const fetchData = async (hash: string): Promise<{ initial_cast: Cast; direct_rep
         }
         return null;
       })
-      .filter(reply => reply !== null) as Cast[];
+      .filter((reply) => reply !== null) as Cast[];
   };
 
   const initialCastInfo = extractInfo(conversation.cast);
@@ -109,23 +109,23 @@ const fetchData = async (hash: string): Promise<{ initial_cast: Cast; direct_rep
   initialCastInfo.replies_count = directRepliesInfo.length + directRepliesInfo.reduce((acc, r) => acc + r.replies_count, 0);
 
   const fetchSocialCapitalValues = async (hashes: string[]): Promise<SocialCapitalValueResponse[]> => {
-    const requests = hashes.map(hash => fetchQuery(GET_REPLY_INFO_QUERY, { hash }));
+    const requests = hashes.map((hash) => fetchQuery(GET_REPLY_INFO_QUERY, {hash}));
 
     const responses = await Promise.all(requests);
 
-    return responses.map(response => {
+    return responses.map((response) => {
       if (response.error || !response.data || !response.data.FarcasterReplies || !response.data.FarcasterReplies.Reply[0] || !response.data.FarcasterReplies.Reply[0].socialCapitalValue) {
-        return { hash, socialCapitalValue: null };
+        return {hash, socialCapitalValue: null};
       }
       return {
         hash: response.data.FarcasterReplies.Reply[0].hash,
-        socialCapitalValue: response.data.FarcasterReplies.Reply[0].socialCapitalValue
+        socialCapitalValue: response.data.FarcasterReplies.Reply[0].socialCapitalValue,
       };
     });
   };
 
   const collectAllHashes = (replies: Cast[]): string[] => {
-    return replies.flatMap(reply => [reply.hash, ...collectAllHashes(reply.direct_replies || [])]);
+    return replies.flatMap((reply) => [reply.hash, ...collectAllHashes(reply.direct_replies || [])]);
   };
 
   const allHashes = collectAllHashes(directRepliesInfo);
@@ -134,8 +134,8 @@ const fetchData = async (hash: string): Promise<{ initial_cast: Cast; direct_rep
 
   const addAndFilterSocialCapitalValues = (replies: Cast[], socialValues: SocialCapitalValueResponse[]): Cast[] => {
     return replies
-      .map(reply => {
-        const socialValue = socialValues.find(sv => sv.hash === reply.hash);
+      .map((reply) => {
+        const socialValue = socialValues.find((sv) => sv.hash === reply.hash);
         if (socialValue && socialValue.socialCapitalValue && socialValue.socialCapitalValue.formattedValue !== undefined) {
           reply.socialCapitalValue = socialValue.socialCapitalValue.formattedValue;
         } else {
@@ -144,7 +144,7 @@ const fetchData = async (hash: string): Promise<{ initial_cast: Cast; direct_rep
         reply.direct_replies = addAndFilterSocialCapitalValues(reply.direct_replies || [], socialValues);
         return reply;
       })
-      .filter(reply => reply.socialCapitalValue !== null)
+      .filter((reply) => reply.socialCapitalValue !== null)
       .sort((a, b) => (b.socialCapitalValue || 0) - (a.socialCapitalValue || 0));
   };
 
@@ -156,10 +156,10 @@ const fetchData = async (hash: string): Promise<{ initial_cast: Cast; direct_rep
     initial_cast: initialCastInfo,
     direct_replies: enrichedRepliesInfo,
     total_replies_count: totalRepliesCount,
-    filtered_replies_count: filteredRepliesCount
+    filtered_replies_count: filteredRepliesCount,
   };
 
   return result;
 };
 
-export { fetchData };
+export {fetchData};
