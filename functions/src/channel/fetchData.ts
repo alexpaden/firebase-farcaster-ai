@@ -23,10 +23,16 @@ const fetchChannelData = async (channelId: string): Promise<{ id: string; url: s
 
 const fetchTrendingCasts = async (rootParentUrl: string, timeFrame: string): Promise<any[]> => {
     const timeFrameMapping: { [key: string]: string } = {
-            day: 'one_day',
-            week: 'seven_days'
+        day: 'one_day',
+        week: 'seven_days'
     };
-    const mappedTimeFrame = timeFrameMapping[timeFrame] || 'one_day';
+
+    if (!['day', 'week'].includes(timeFrame)) {
+        throw new Error(`Invalid time frame provided: ${timeFrame}. Valid options are 'day' or 'week'.`);
+    }
+
+    const mappedTimeFrame = timeFrameMapping[timeFrame];  // Safe to use as we've validated the input
+
     const query = `
     query GetTrendingCasts {
         TrendingCasts(
@@ -38,8 +44,13 @@ const fetchTrendingCasts = async (rootParentUrl: string, timeFrame: string): Pro
         }
     }`;
     const response = await fetchQuery(query);
+    if (!response.data) {
+        throw new Error("GraphQL query failed to return valid data.");
+    }
     return response.data.TrendingCasts.TrendingCast.map((cast: any) => cast.hash);
 };
+
+
 
 const fetchChannelDataAndProcessThreads = async (channelId: string, threadCount: number, shouldRefresh: boolean, timeFrame: string): Promise<any> => {
     const { id, url } = await fetchChannelData(channelId);
@@ -56,10 +67,11 @@ const fetchChannelDataAndProcessThreads = async (channelId: string, threadCount:
         channel_id: id,
         number_of_threads_used: threadCount,
         time_frame: timeFrame,
-        capture_date: capture_date,
+        summary_timestamp: capture_date,
         top_thread_summaries: threadSummaries.map(ts => ({
             hash: ts.hash,
-            timestamp: ts.formattedResult.timestamp,
+            cast_timestamp: ts.formattedResult.cast_timestamp,
+            summary_timestamp: ts.formattedResult.summary_timestamp,
             author_username: ts.formattedResult.author_username,
             initial_cast: ts.formattedResult.initial_cast,
             highlighted_replies: ts.formattedResult.highlighted_replies,

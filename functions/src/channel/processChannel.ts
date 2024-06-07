@@ -19,11 +19,6 @@ export async function processChannel(
   timeFrame: string = 'day'
 ): Promise<ChannelResult> {
   const db = admin.firestore();
-  const timeFrameMapping: { [key: string]: string } = {
-    day: 'one_day',
-    week: 'seven_days'
-  };
-  const graphQLTimeFrame = timeFrameMapping[timeFrame as keyof typeof timeFrameMapping];
   const hashKey = `${channelId}-${timeFrame}-${new Date().toISOString().split('T')[0]}`;
   const docRef = db.collection('channels').doc(hashKey);
 
@@ -35,7 +30,7 @@ export async function processChannel(
   }
 
   try {
-    const channelData = await fetchChannelDataAndProcessThreads(channelId, threadCount, shouldRefresh, graphQLTimeFrame);
+    const channelData = await fetchChannelDataAndProcessThreads(channelId, threadCount, shouldRefresh, timeFrame);
     const topThreadSummaries = channelData.top_thread_summaries;
     const formattedChannelSummary = await formatChannelSummaryWithOpenAI(topThreadSummaries, channelId, threadCount);
 
@@ -49,7 +44,7 @@ export async function processChannel(
     await docRef.set(result);
     return result;
   } catch (error) {
-    console.error("Error processing channel:", (error as Error).message);
+    console.error("Error processing channel:", error);
     const errorResult: ChannelResult = {
       channel_id: channelId,
       number_of_threads_used: threadCount,
