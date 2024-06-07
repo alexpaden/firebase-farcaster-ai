@@ -3,7 +3,6 @@ import OpenAI from "openai";
 
 const openai = new OpenAI({
   apiKey: functions.config().openai.api_key,
-
 });
 
 interface Cast {
@@ -51,13 +50,13 @@ const formatWithOpenAI = async (data: Data, numReplies: number): Promise<any> =>
       .sort((a: Cast, b: Cast) => (b.socialCapitalValue ?? 0) - (a.socialCapitalValue ?? 0))
       .slice(0, numReplies);
 
-    const formattedReplies = formatReplies(topReplies);
+    const highlightedReplies = formatReplies(topReplies);
 
     const prompt = `
-  Initial cast: ${initialCastText}
+Initial cast: ${initialCastText}
 
-  Direct replies:
-  ${formattedReplies}
+Highlighted replies:
+${highlightedReplies}
 `;
 
     const response = await openai.chat.completions.create({
@@ -85,9 +84,11 @@ const formatWithOpenAI = async (data: Data, numReplies: number): Promise<any> =>
     const result = {
       hash: data.initial_cast.hash,
       timestamp: data.initial_cast.timestamp,
-      prompt,
+      author_username: data.initial_cast.username,
+      initial_cast: initialCastText,
+      highlighted_replies: highlightedReplies,
       thread_summary: threadSummary,
-      highlighted_authors: Array.from(usernames),
+      highlighted_repliers: Array.from(usernames),
       total_replies_count: data.total_replies_count,
       filtered_replies_count: data.filtered_replies_count,
     };
@@ -99,4 +100,4 @@ const formatWithOpenAI = async (data: Data, numReplies: number): Promise<any> =>
   }
 };
 
-export {formatWithOpenAI};
+export { formatWithOpenAI };
