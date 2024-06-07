@@ -81,25 +81,25 @@ ${highlightedReplies}
 
     const threadSummary = response.choices[0]?.message.content?.trim() || "No content";
 
-const result = {
-  hash: data.initial_cast.hash,
-  cast_timestamp: data.initial_cast.timestamp,
-  summary_timestamp: new Date().toISOString(),
-  author_username: data.initial_cast.username,
-  initial_cast: initialCastText,
-  highlighted_replies: highlightedReplies,
-  thread_summary: threadSummary,
-  highlighted_repliers: Array.from(usernames),
-  total_replies_count: data.total_replies_count,
-  filtered_replies_count: data.filtered_replies_count,
-};
+    const result = {
+      hash: data.initial_cast.hash,
+      cast_timestamp: data.initial_cast.timestamp,
+      summary_timestamp: new Date().toISOString(),
+      author_username: data.initial_cast.username,
+      initial_cast: initialCastText,
+      highlighted_replies: highlightedReplies,
+      thread_summary: threadSummary,
+      highlighted_repliers: Array.from(usernames),
+      total_replies_count: data.total_replies_count,
+      filtered_replies_count: data.filtered_replies_count,
+      socialCapitalValue: data.initial_cast.socialCapitalValue,
+    };
 
-return result;
-
+    return result;
   } catch (error) {
     console.error("Error formatting with OpenAI:", (error as Error).message);
     throw new Error("Failed to format data with OpenAI");
   }
 };
 
-export { formatWithOpenAI };
+export {formatWithOpenAI};

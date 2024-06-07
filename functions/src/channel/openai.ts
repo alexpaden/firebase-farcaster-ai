@@ -33,7 +33,7 @@ const formatChannelSummaryWithOpenAI = async (threads: ThreadSummary[], channelI
            Be laconic and avoid repetition, numbering, AND filler words wherever possible. Be short, combine descriptions if possible. Short attention span audience.
            `,
         },
-        { role: "user", content: prompt },
+        {role: "user", content: prompt},
       ],
       temperature: 1,
       max_tokens: 512,
@@ -54,4 +54,4 @@ const formatChannelSummaryWithOpenAI = async (threads: ThreadSummary[], channelI
   }
 };
 
-export { formatChannelSummaryWithOpenAI };
+export {formatChannelSummaryWithOpenAI};

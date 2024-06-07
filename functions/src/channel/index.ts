@@ -1,29 +1,29 @@
 import * as express from "express";
-import { processChannel } from "./processChannel";
+import {processChannel} from "./processChannel";
 
 const router = express.Router();
 
 router.get("/", async (req, res) => {
-    const { channel_id, thread_count = 3, refresh, time_frame } = req.query;
+  const {channelId, threadCount = 3, refresh, timeFrame} = req.query;
 
-    if (!channel_id) {
-        return res.status(400).send("Missing required parameter: channel_id");
-    }
+  if (!channelId) {
+    return res.status(400).send("Missing required parameter: channelId");
+  }
 
-    if (!time_frame || (time_frame !== 'day' && time_frame !== 'week')) {
-        return res.status(400).send("Invalid or missing time_frame parameter. Choose 'day' or 'week'.");
-    }
+  if (!timeFrame || (timeFrame !== "day" && timeFrame !== "week")) {
+    return res.status(400).send("Invalid or missing timeFrame parameter. Choose 'day' or 'week'.");
+  }
 
-    const numThreads = parseInt(thread_count as string, 10);
-    const shouldRefresh = refresh === "true";
+  const numThreads = parseInt(threadCount as string, 10);
+  const shouldRefresh = refresh === "true";
 
-    try {
-        const result = await processChannel(channel_id as string, numThreads, shouldRefresh, time_frame as 'day' | 'week');
-        return res.status(200).json(result);
-    } catch (error) {
-        console.error("Error processing channel:", error);
-        return res.status(500).send("Internal Server Error");
-    }
+  try {
+    const result = await processChannel(channelId as string, numThreads, shouldRefresh, timeFrame as "day" | "week");
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("Error processing channel:", error);
+    return res.status(500).send("Internal Server Error");
+  }
 });
 
 export default router;

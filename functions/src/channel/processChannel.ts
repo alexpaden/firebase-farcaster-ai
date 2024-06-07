@@ -1,6 +1,6 @@
-import { fetchChannelDataAndProcessThreads } from "./fetchData";
-import { formatChannelSummaryWithOpenAI } from "./openai";
-import admin from '../firebaseAdmin';
+import {fetchChannelDataAndProcessThreads} from "./fetchData";
+import {formatChannelSummaryWithOpenAI} from "./openai";
+import admin from "../firebaseAdmin";
 
 interface ChannelResult {
   channel_id: string;
@@ -12,15 +12,24 @@ interface ChannelResult {
   capture_date: string;
 }
 
+/**
+ * Processes a channel by fetching data and generating summaries, handling caching mechanism.
+ *
+ * @param {string} channelId - The ID of the channel to process.
+ * @param {number} threadCount - The number of threads to retrieve and process.
+ * @param {boolean} shouldRefresh - Flag to determine if data should be refreshed from the source.
+ * @param {string} [timeFrame="day"] - The time frame for which data is processed, use 'day' or 'week'.
+ * @return {Promise<ChannelResult>} The result of the channel processing, including data and possible errors.
+ */
 export async function processChannel(
   channelId: string,
   threadCount: number,
   shouldRefresh: boolean,
-  timeFrame: string = 'day'
+  timeFrame = "day"
 ): Promise<ChannelResult> {
   const db = admin.firestore();
-  const hashKey = `${channelId}-${timeFrame}-${new Date().toISOString().split('T')[0]}`;
-  const docRef = db.collection('channels').doc(hashKey);
+  const hashKey = `${channelId}-${timeFrame}-${new Date().toISOString().split("T")[0]}`;
+  const docRef = db.collection("channels").doc(hashKey);
 
   if (!shouldRefresh) {
     const doc = await docRef.get();
@@ -38,7 +47,7 @@ export async function processChannel(
       ...channelData,
       channel_summary: formattedChannelSummary.channel_summary,
       time_frame: timeFrame,
-      capture_date: channelData.capture_date
+      capture_date: channelData.capture_date,
     };
 
     await docRef.set(result);
@@ -51,7 +60,7 @@ export async function processChannel(
       top_thread_summaries: [],
       error: "Internal Server Error",
       time_frame: timeFrame,
-      capture_date: new Date().toISOString().split('T')[0]
+      capture_date: new Date().toISOString().split("T")[0],
     };
 
     await docRef.set(errorResult);

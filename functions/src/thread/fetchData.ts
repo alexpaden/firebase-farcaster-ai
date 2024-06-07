@@ -1,13 +1,27 @@
 import {init, fetchQuery} from "@airstack/node";
 import * as functions from "firebase-functions";
 
-
 const GET_REPLY_INFO_QUERY = `
 query GetCastReplyDetails($hash: String!) {
   FarcasterReplies(
-    input: {filter: {hash: {_eq: $hash}}, blockchain: ALL, limit: 50}
+    input: { filter: { hash: { _eq: $hash } }, blockchain: ALL}
   ) {
     Reply {
+      hash
+      socialCapitalValue {
+        formattedValue
+      }
+    }
+  }
+}
+`;
+
+const GET_INITIAL_CAST_INFO_QUERY = `
+query GetInitialCastDetails($hash: String!) {
+  FarcasterCasts(
+    input: { filter: { hash: { _eq: $hash } }, blockchain: ALL }
+  ) {
+    Cast {
       hash
       socialCapitalValue {
         formattedValue
@@ -108,6 +122,17 @@ const fetchData = async (hash: string): Promise<{ initial_cast: Cast; direct_rep
 
   initialCastInfo.replies_count = directRepliesInfo.length + directRepliesInfo.reduce((acc, r) => acc + r.replies_count, 0);
 
+  const fetchInitialCastSocialCapitalValue = async (hash: string): Promise<SocialCapitalValueResponse> => {
+    const response = await fetchQuery(GET_INITIAL_CAST_INFO_QUERY, {hash});
+    if (response.error || !response.data || !response.data.FarcasterCasts || !response.data.FarcasterCasts.Cast[0] || !response.data.FarcasterCasts.Cast[0].socialCapitalValue) {
+      return {hash, socialCapitalValue: null};
+    }
+    return {
+      hash: response.data.FarcasterCasts.Cast[0].hash,
+      socialCapitalValue: response.data.FarcasterCasts.Cast[0].socialCapitalValue,
+    };
+  };
+
   const fetchSocialCapitalValues = async (hashes: string[]): Promise<SocialCapitalValueResponse[]> => {
     const requests = hashes.map((hash) => fetchQuery(GET_REPLY_INFO_QUERY, {hash}));
 
@@ -129,6 +154,9 @@ const fetchData = async (hash: string): Promise<{ initial_cast: Cast; direct_rep
   };
 
   const allHashes = collectAllHashes(directRepliesInfo);
+
+  const initialCastSocialCapitalValue = await fetchInitialCastSocialCapitalValue(hash);
+  initialCastInfo.socialCapitalValue = initialCastSocialCapitalValue.socialCapitalValue ? initialCastSocialCapitalValue.socialCapitalValue.formattedValue : null;
 
   const socialCapitalValues = await fetchSocialCapitalValues(allHashes);
 
