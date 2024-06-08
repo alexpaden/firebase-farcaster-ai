@@ -1,16 +1,9 @@
-import * as admin from "firebase-admin";
 import * as express from "express";
-import {fetchData} from "./fetchData";
-import {formatWithOpenAI} from "./openai";
+import {processThread} from "./processThread";
 
+const router = express.Router();
 
-admin.initializeApp();
-const app = express();
-const db = admin.firestore();
-
-app.use(express.json());
-
-app.get("/thread", async (req, res) => {
+router.get("/", async (req, res) => {
   const {hash, replies, refresh} = req.query;
 
   if (!hash) {
@@ -20,32 +13,13 @@ app.get("/thread", async (req, res) => {
   const numReplies = replies ? parseInt(replies as string, 10) : 5;
   const shouldRefresh = refresh === "true";
 
-  try {
-    const docRef = db.collection("threads").doc(hash as string);
-    let result;
+  const result = await processThread(hash as string, numReplies, shouldRefresh);
 
-    if (shouldRefresh) {
-      result = await fetchData(hash as string);
-      const formattedResult = await formatWithOpenAI(result, numReplies);
-      await docRef.set(formattedResult);
-      return res.status(200).json(formattedResult);
-    }
-
-    const doc = await docRef.get();
-    if (doc.exists) {
-      result = doc.data();
-    } else {
-      result = await fetchData(hash as string);
-      const formattedResult = await formatWithOpenAI(result, numReplies);
-      await docRef.set(formattedResult);
-      return res.status(200).json(formattedResult);
-    }
-
-    return res.status(200).json(result);
-  } catch (error) {
-    console.error("Error processing request:", error);
-    return res.status(500).send("Internal Server Error");
+  if (result.error) {
+    return res.status(500).send(result.error);
   }
+
+  return res.status(200).json(result);
 });
 
-export default app;
+export default router;
