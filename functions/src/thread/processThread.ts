@@ -4,7 +4,7 @@ import {formatWithOpenAI} from "./openai";
 
 const db = admin.firestore();
 
-interface ThreadResult {
+export interface ThreadResult {
   hash: string;
   cast_timestamp?: string;
   thread_summary?: string;
