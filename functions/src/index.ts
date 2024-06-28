@@ -14,6 +14,6 @@ app.use("/user", userRoutes);
 exports.api = functions
   .runWith({
     timeoutSeconds: 300,
-    memory: '512MB'
+    memory: "512MB",
   })
   .https.onRequest(app);

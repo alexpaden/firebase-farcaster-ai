@@ -1,6 +1,6 @@
-import { fetchUserCasts } from "./fetchData";
-import { processThread, ThreadResult } from "../thread/processThread";
-import { formatUserSummaryWithOpenAI } from "./openai";
+import {fetchUserCasts} from "./fetchData";
+import {processThread, ThreadResult} from "../thread/processThread";
+import {formatUserSummaryWithOpenAI} from "./openai";
 
 export interface UserSummary {
   summary_timestamp: string;
@@ -26,35 +26,35 @@ interface ChannelCounts {
 export async function processUser(username: string, threadCount: number, shouldRefresh: boolean): Promise<UserSummary> {
   const casts = await fetchUserCasts(username);
 
-  const validCasts = casts.filter(cast => cast.socialCapitalValue && cast.socialCapitalValue.formattedValue != null);
+  const validCasts = casts.filter((cast) => cast.socialCapitalValue && cast.socialCapitalValue.formattedValue != null);
   const sortedCasts = validCasts.sort((a, b) => b.socialCapitalValue.formattedValue - a.socialCapitalValue.formattedValue);
   const topThreads = sortedCasts.slice(0, threadCount);
 
   const channelCounts = topThreads.reduce((acc: ChannelCounts, cast) => {
-    const channelId = cast.channel?.channelId || 'no_channel';
+    const channelId = cast.channel?.channelId || "no_channel";
     acc[channelId] = (acc[channelId] || 0) + 1;
     return acc;
   }, {} as ChannelCounts);
 
   const preferredChannels = Object.entries(channelCounts).map(([channelId, count]) => ({
-    channelId: channelId === 'no_channel' ? null : channelId,
-    count
+    channelId: channelId === "no_channel" ? null : channelId,
+    count,
   }));
 
   const preferredThreads = await Promise.all(
-    topThreads.map(cast => processThread(cast.hash, 5, shouldRefresh))
+    topThreads.map((cast) => processThread(cast.hash, 5, shouldRefresh, "summary"))
   );
 
   const userSummaryText = await formatUserSummaryWithOpenAI({
     summary_timestamp: new Date().toISOString(),
     preferred_channels: preferredChannels,
-    preferred_threads: preferredThreads
+    preferred_threads: preferredThreads,
   }, username);
 
   return {
     summary_timestamp: new Date().toISOString(),
     preferred_channels: preferredChannels,
     preferred_threads: preferredThreads,
-    user_summary: userSummaryText
+    user_summary: userSummaryText,
   };
 }

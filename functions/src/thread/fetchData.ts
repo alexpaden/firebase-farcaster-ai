@@ -66,7 +66,9 @@ const fetchData = async (hash: string): Promise<{ initial_cast: Cast; direct_rep
   });
 
   if (!response.ok) {
-    throw new Error("Network response was not ok");
+    const errorText = await response.text();
+    console.error(`Network response was not ok: ${response.status} - ${response.statusText}: ${errorText}`);
+    throw new Error(`Network response was not ok: ${response.status} - ${response.statusText}: ${errorText}`);
   }
 
   const data = await response.json();

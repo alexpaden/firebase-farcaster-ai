@@ -16,6 +16,7 @@ export interface ThreadResult {
   author_username?: string;
   total_replies_count?: number;
   socialCapitalValue?: number | null;
+  prompt_used?: string;
   error?: string;
 }
 
@@ -26,18 +27,19 @@ export interface ThreadResult {
  * @param {string} hash - The unique identifier for the thread.
  * @param {number} numReplies - The number of replies to process for the thread.
  * @param {boolean} shouldRefresh - Whether to fetch fresh data regardless of existing cache.
+ * @param {string} prompt - The prompt to use for OpenAI formatting.
  * @return {Promise<ThreadResult>} The result of processing the thread, including formatted data or an error.
  */
-export async function processThread(hash: string, numReplies: number, shouldRefresh: boolean): Promise<ThreadResult> {
-  const docRef = db.collection("threads").doc(hash);
+export async function processThread(hash: string, numReplies: number, shouldRefresh: boolean, prompt: string): Promise<ThreadResult> {
+  const docRef = db.collection("threads").doc(`${hash}-${prompt}`);
   try {
     let result;
 
     if (shouldRefresh) {
       result = await fetchData(hash);
-      const formattedResult = await formatWithOpenAI(result, numReplies);
+      const formattedResult = await formatWithOpenAI(result, numReplies, prompt);
       await docRef.set(formattedResult);
-      return {hash, ...formattedResult};
+      return {hash, prompt_used: prompt, ...formattedResult};
     }
 
     const doc = await docRef.get();
@@ -45,14 +47,14 @@ export async function processThread(hash: string, numReplies: number, shouldRefr
       result = doc.data();
     } else {
       result = await fetchData(hash);
-      const formattedResult = await formatWithOpenAI(result, numReplies);
+      const formattedResult = await formatWithOpenAI(result, numReplies, prompt);
       await docRef.set(formattedResult);
-      return {hash, ...formattedResult};
+      return {hash, prompt_used: prompt, ...formattedResult};
     }
 
-    return {hash, ...result};
+    return {hash, prompt_used: prompt, ...result};
   } catch (error) {
     console.error("Error processing thread:", error);
-    return {hash, error: "Internal Server Error"};
+    return {hash, prompt_used: prompt, error: "Internal Server Error"};
   }
 }

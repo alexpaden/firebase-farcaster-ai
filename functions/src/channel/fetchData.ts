@@ -80,7 +80,7 @@ const fetchChannelDataAndProcessThreads = async (channelId: string, threadCount:
   const topHashes = trendingCastsHashes.slice(0, threadCount);
 
   const threadSummaries = await Promise.all(
-    topHashes.map((hash) => processThread(hash, 5, shouldRefresh))
+    topHashes.map((hash) => processThread(hash, 5, shouldRefresh, "summary"))
   );
 
   const captureDate = new Date().toISOString().split("T")[0];
