@@ -21,7 +21,20 @@ interface Data {
   filtered_replies_count: number;
 }
 
-const formatWithOpenAI = async (data: Data, numReplies: number): Promise<any> => {
+const getSystemPrompt = (promptType: string, numReplies: number): string => {
+  switch (promptType) {
+  case "question":
+    return `You are a helpful assistant whose role is to generate a new insightful question based on the context provided by the original post and the comments. Use the top ${numReplies} replies to provide context for your question. Ensure the question encourages further discussion and exploration of the topic. The question should be clear, engaging, and relevant to the original post and the replies. Avoid redundancy and ensure it adds value to the ongoing conversation.`;
+  case "idea":
+    return `You are a helpful assistant whose role is to generate a new idea based on the context provided by the original post and the comments. Use the top ${numReplies} replies to provide context for your idea. Ensure the idea sparks new thinking and exploration of the topic. The idea should be innovative, relevant, and provide a fresh perspective. Avoid redundancy and ensure it adds value to the ongoing conversation.`;
+  case "summary":
+  case "default":
+  default:
+    return `You are a helpful assistant whose role is to summarize the data in a thread around this conversation in an easy-to-read format for quick display in a social app of mobile screen size. Your summary should capture the essence of the replies as they relate to the thread's initial cast. Avoid restating what the original cast says, as the author has already read the original post. The summary should be concise and avoid numbering unless it adds clarity. Make sure to include any mentions of users (e.g., @perl, @mintit) as they are relevant to the context and engagement, don't include the @. I have provided the top ${numReplies} replies by engagement for you to summarize. You are to respond as if you're an informative description, not a conversation participant. DO NOT redescribe the original post or include it in your description. DO NOT enumerate the replies, create a comprehensive short paragraph.`;
+  }
+};
+
+const formatWithOpenAI = async (data: Data, numReplies: number, promptType: string): Promise<any> => {
   try {
     const initialCastText = data.initial_cast.text;
     const usernames: Set<string> = new Set();
@@ -59,16 +72,14 @@ Highlighted replies:
 ${highlightedReplies}
 `;
 
+    const systemPrompt = getSystemPrompt(promptType, numReplies);
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: `You are a helpful assistant whose role is to summarize the data in a thread around this conversation in an easy-to-read format
-          for quick display in a social app of mobile screen size. Your summary should capture the essence of the replies as they relate to the thread's initial cast.
-          Avoid restating what the original cast says, as the author has already read the original post. The summary should be concise and avoid numbering unless it adds clarity.
-          Make sure to include any mentions of users (e.g., @perl, @mintit) as they are relevant to the context and engagement, don't include the @. I have provided the top ${numReplies} replies by engagement for you to summarize.
-          You are to respond as if you're an informative description, not a conversation participant. DO NOT redescribe the original post or include it in your description. DO NOT enumerate the replies, create a comprehensive short paragraph`,
+          content: systemPrompt,
         },
         {role: "user", content: prompt},
       ],
@@ -93,6 +104,7 @@ ${highlightedReplies}
       total_replies_count: data.total_replies_count,
       filtered_replies_count: data.filtered_replies_count,
       socialCapitalValue: data.initial_cast.socialCapitalValue,
+      prompt_used: promptType,
     };
 
     return result;

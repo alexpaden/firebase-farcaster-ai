@@ -1,4 +1,4 @@
-import { fetchQueryWithPagination } from "@airstack/node";
+import {fetchQueryWithPagination} from "@airstack/node";
 
 interface Cast {
   text: string;
@@ -55,11 +55,11 @@ const fetchUserCasts = async (username: string): Promise<Cast[]> => {
 
     const variables = {
       username: formattedUsername,
-      cursor: currentPageCursor
+      cursor: currentPageCursor,
     };
 
     try {
-      const { data, error } = await fetchQueryWithPagination(query, variables);
+      const {data, error} = await fetchQueryWithPagination(query, variables);
       if (error) {
         console.error(`Fetching casts failed with error: ${JSON.stringify(error)}`);
         throw new Error(`Fetching casts failed: ${JSON.stringify(error, null, 2)}`);
@@ -78,4 +78,4 @@ const fetchUserCasts = async (username: string): Promise<Cast[]> => {
   return allCasts;
 };
 
-export { fetchUserCasts };
+export {fetchUserCasts};

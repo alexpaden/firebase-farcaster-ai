@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
 import OpenAI from "openai";
-import { UserSummary } from "./processUser";
+import {UserSummary} from "./processUser";
 
 const openai = new OpenAI({
   apiKey: functions.config().openai.api_key,
@@ -8,12 +8,12 @@ const openai = new OpenAI({
 
 const formatUserSummaryWithOpenAI = async (userSummary: UserSummary, username: string): Promise<string> => {
   try {
-    const narrativeThreads = userSummary.preferred_threads.map(thread => {
+    const narrativeThreads = userSummary.preferred_threads.map((thread) => {
       const formattedDate = thread.cast_timestamp ? new Date(thread.cast_timestamp).toLocaleDateString() : "Date Unknown";
       return `"${thread.initial_cast}" on ${formattedDate} (${thread.thread_summary}), highlighted replies: ${thread.highlighted_replies}.`;
     }).join(" ");
 
-    const channelDetails = userSummary.preferred_channels.map(channel => `${channel.channelId}: ${channel.count} threads`).join(', ');
+    const channelDetails = userSummary.preferred_channels.map((channel) => `${channel.channelId}: ${channel.count} threads`).join(", ");
     const prompt = `Create a concise biography for ${username}, actively contributing to channels like ${channelDetails}. Key discussions include: ${narrativeThreads} Summarize this succinctly for a mobile screen.`;
 
     const response = await openai.chat.completions.create({
@@ -40,15 +40,14 @@ const formatUserSummaryWithOpenAI = async (userSummary: UserSummary, username: s
       frequency_penalty: 0.15,
       presence_penalty: 0,
     });
-    
-    const userSummaryText = response.choices[0]?.message.content?.trim() || "No content available";
-    
-    return userSummaryText;
 
+    const userSummaryText = response.choices[0]?.message.content?.trim() || "No content available";
+
+    return userSummaryText;
   } catch (error) {
     console.error("Error formatting with OpenAI:", (error as Error).message);
     throw new Error("Failed to format user data with OpenAI");
   }
 };
 
-export { formatUserSummaryWithOpenAI };
+export {formatUserSummaryWithOpenAI};
